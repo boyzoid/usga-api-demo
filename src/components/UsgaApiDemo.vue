@@ -26,11 +26,14 @@
         <label for="courseSearch">Course Name </label>
         <input type="text" id="courseSearch" v-model="courseSearch"/> <button type="button" @click="search()">Search</button>
       </p>
-      <ul id="courseList">
-          <li v-for="c in courses" v-bind:key="c.CourseID">
-            {{ c.FullName }} - {{ c.City }}, {{ c.State }}
-          </li>
-      </ul>
+      <div id="courses">
+        <div class="course" v-for="c in sortedCourses" :key="c.CourseID">
+          <div class="bold">{{ titleCase( c.FullName ) }}</div>
+          <div>
+            {{ titleCase( c.City ) }} {{ c.State }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -48,6 +51,13 @@ export default {
       error: '',
       courseSearch: '',
       courses: []
+    }
+  },
+  computed:{
+    sortedCourses(){
+      return this.courses.slice().sort( function( a,b ){
+        return a.FullName.toLowerCase() < b.FullName.toLowerCase() ? -1 : 1
+      } )
     }
   },
   methods:{
@@ -69,7 +79,6 @@ export default {
       let searchResult = await searchCourses( this.courseSearch, this.baseurl, this.token )
       if( searchResult.courses ){
         this.courses = searchResult.courses;
-        this.courses.sort((a, b) => (a.FullName > b.FullName) ? 1 : -1)
         if( this.courses.length === 0 ){
           this.error = 'No course matched your search'
         }
@@ -77,6 +86,15 @@ export default {
       else{
         this.error = "There was a problem getting courses."
       }
+
+    },
+    titleCase(value){
+    if( !value ){
+      return ''
+    }
+    else{
+      return value.toLowerCase().replace(/(?:^|\s|-)\S/g, x => x.toUpperCase());
+    }
 
     }
   }
@@ -123,10 +141,21 @@ a {
   color: #9d3232;
   font-weight: bold;
 }
-#courseList{
+
+.course{
+  margin-bottom: 10px;
   width:35%;
   text-align: left;
   margin-left: auto;
   margin-right: auto;
+  padding: 8px;
+  border: 1px solid #555555;
+  border-radius: 4px;
+}
+.bold{
+  font-weight: bold;
+}
+#courses > div:nth-of-type( even ) {
+  background: #e0e0e0;
 }
 </style>
